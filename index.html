@@ -457,17 +457,26 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
   real episodes: the sensor depth video and the first real frame go in, the real video is the target. Nine episodes are held out.</p>
   <figure>
     <video src="static/videos/touchrender_heldout.mp4" muted loop playsinline controls preload="metadata" style="aspect-ratio:1344/768"></video>
-    <figcaption><b>Held-out episodes, early checkpoint (250 steps).</b> Depth control, the generated video, and the real video the model never saw.</figcaption>
+    <figcaption><b>Held-out episodes, early checkpoint (250 steps).</b> Depth control, the generated video, and the real video the model never saw.
+    These clips barely move; see the table below for how little this adds over the untrained base.</figcaption>
   </figure>
   <div class="tw"><table>
-    <tr><th>TouchRender, 250 steps</th><th>Control</th><th>PSNR ↑</th><th>LPIPS ↓</th></tr>
-    <tr class="ours"><td>9 held-out episodes (1.4 s clips)</td><td>real sensor depth</td><td class="n">27.6</td><td class="n">.077</td></tr>
-    <tr><td>Replayed grasp from the simulator</td><td>simulated depth</td><td class="n">21.5</td><td class="n">.298</td></tr>
-    <tr><td>Code-completed grasp from the simulator</td><td>simulated depth</td><td class="n">7.3</td><td class="n">1.12</td></tr>
+    <tr><th>Clip · control</th><th>Model</th><th>PSNR ↑</th><th>LPIPS ↓</th></tr>
+    <tr><td rowspan="3">9 held-out episodes, 1.4 s · real sensor depth</td><td>static first frame</td><td class="n">26.8</td><td class="n">.098</td></tr>
+    <tr><td>base Wan-Fun, no training</td><td class="n">26.2</td><td class="n">.078</td></tr>
+    <tr class="ours"><td>TouchRender, 250 steps</td><td class="n">27.6</td><td class="n">.077</td></tr>
+    <tr><td rowspan="2">Replayed grasp, 1.4 s · simulated depth</td><td>static first frame</td><td class="n">16.6</td><td class="n">.458</td></tr>
+    <tr class="ours"><td>TouchRender, 250 steps</td><td class="n">21.5</td><td class="n">.298</td></tr>
+    <tr><td rowspan="2">Code-completed grasp · simulated depth</td><td>static first frame</td><td class="n">64.5</td><td class="n">.407</td></tr>
+    <tr><td>TouchRender, 250 steps</td><td class="n">7.3</td><td class="n">1.11</td></tr>
   </table></div>
-  <p class="cap">With real depth as control the task is close to reconstruction, so the first row is an upper bound, not a sim-to-real result. Simulated
-  depth is the case that matters: it works on the replayed grasp and fails on the code-completed one (cause not yet diagnosed). The full 1,500-step run has
-  finished training; its evaluation against the untrained base model is running.</p>
+  <p class="cap">The held-out clips barely move, so a static first frame already scores 26.8 and the 250-step model adds little over the untrained base on real
+  depth (PSNR +1.4, LPIPS equal): that row is a sanity check, not a result. Simulated depth is the case that matters. It beats the static frame on the
+  replayed grasp and destroys the code-completed clip, where nothing moves and the static frame is almost exact (cause not yet diagnosed).</p>
+  <div class="note"><b>Longer training made it worse.</b> The full run (1,500 steps) was scored on the held-out clips with intact base weights:
+  PSNR 22.2 at 500 steps, 17.1 at 1,000 and 16.4 at 1,500, against 26.2 for the untrained base; the generated frames dissolve into colour blobs. The
+  training copy of the base model had two corrupted weights (the server has faulty memory), so the likeliest cause is that the LoRA learned to compensate
+  for them; we are testing this by re-evaluating with the corrupted base reconstructed, and will retrain on verified weights.</div>
 </section>
 
 <section class="step reveal" id="futures">
@@ -522,7 +531,8 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
   </ul>
   <h3 class="sub">Next experiments</h3>
   <ol class="status prose">
-    <li><b>TouchRender, full run.</b> Compare the base model and the 500 / 1,000 / 1,500-step checkpoints on the held-out episodes and on simulated depth.</li>
+    <li><b>TouchRender on verified weights.</b> Confirm the corrupted-base explanation, then retrain from checksum-verified base weights with a harder held-out
+    test (clips where the hands move) and static-frame and base-model baselines in every table.</li>
     <li><b>Close the depth gap.</b> Retrain with controls degraded to look like simulator depth, then render full-length grasps with anchoring and
     cross-faded seams.</li>
     <li><b>Loop, round 2.</b> Give programs a force shape (ramps and event peaks fitted on training episodes), write lessons from training failures into
