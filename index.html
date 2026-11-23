@@ -234,7 +234,8 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
     <a href="#complete"><span>3</span>Complete</a>
     <a href="#sim2real"><span>4</span>Sim2Real</a>
     <a href="#futures"><span>5</span>Futures</a>
-    <a href="#status"><span>6</span>Status</a>
+    <a href="#loop"><span>6</span>Loop</a>
+    <a href="#status"><span>7</span>Status</a>
   </nav>
   <button class="theme" id="theme" type="button" aria-label="Toggle colour theme">◐</button>
 </div></div>
@@ -438,10 +439,35 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
   </table></div>
   <p class="cap">Two-second clips (lift, carry), means over both. A static first frame scores well on PSNR because the camera barely moves; it shows no motion.
   Sim depth gives the right hand and box motion (handle error 17 px) but trails the oracle, which sees the real future geometry.</p>
-  <div class="note"><b>Long videos (in progress).</b> Chaining 2-second chunks over a full 11–12 s grasp drifts: per-2 s PSNR falls from ~17 to ~13.5 after
-  6 s as the background is re-imagined. We fixed the arm proxy (wrist → elbow → shoulder, entering from the image bottom) and are now anchoring every chunk
-  that starts on an observed frame to that real frame. Next: <b>TouchRender</b>, a control LoRA trained on pairs built from every real episode (sensor depth +
-  tracked-hand mask ↔ real video), so the renderer knows our scenes, gloves and hands.</div>
+  <h3 class="sub">Long videos: anchoring to observed frames</h3>
+  <p class="prose">Chaining 2-second chunks over a full 11–12 s grasp drifts as the background is re-imagined. Every chunk that starts on an observed
+  frame now starts from that real frame instead of the previous chunk's last generated frame.</p>
+  <div class="tw"><table>
+    <tr><th>Full-length video (11–12 s)</th><th>Generator</th><th>PSNR ↑ chained</th><th>PSNR ↑ anchored</th></tr>
+    <tr><td>Replayed grasp (complete clip)</td><td>Wan</td><td class="n">14.8</td><td class="n">17.1</td></tr>
+    <tr><td>Replayed grasp (complete clip)</td><td>RoboRender</td><td class="n">15.3</td><td class="n">16.8</td></tr>
+    <tr><td>Code-completed grasp (partial clip)</td><td>Wan</td><td class="n">12.9</td><td class="n">16.4</td></tr>
+    <tr><td>Code-completed grasp (partial clip)</td><td>RoboRender</td><td class="n">15.4</td><td class="n">16.1</td></tr>
+  </table></div>
+  <p class="cap">One episode. LPIPS of the replayed Wan video falls from .585 to .435. Anchoring leaves a visible jump at each anchor (frame difference at a
+  seam is 8× the within-chunk level); cross-fading the seams is not done yet.</p>
+
+  <h3 class="sub">TouchRender: a renderer trained on our own episodes</h3>
+  <p class="prose">RoboRender has only seen robot arms. TouchRender is a control LoRA (rank 64) on Wan2.1-Fun-1.3B-Control, trained on 903 clips cut from 53
+  real episodes: the sensor depth video and the first real frame go in, the real video is the target. Nine episodes are held out.</p>
+  <figure>
+    <video src="static/videos/touchrender_heldout.mp4" muted loop playsinline controls preload="metadata" style="aspect-ratio:1344/768"></video>
+    <figcaption><b>Held-out episodes, early checkpoint (250 steps).</b> Depth control, the generated video, and the real video the model never saw.</figcaption>
+  </figure>
+  <div class="tw"><table>
+    <tr><th>TouchRender, 250 steps</th><th>Control</th><th>PSNR ↑</th><th>LPIPS ↓</th></tr>
+    <tr class="ours"><td>9 held-out episodes (1.4 s clips)</td><td>real sensor depth</td><td class="n">27.6</td><td class="n">.077</td></tr>
+    <tr><td>Replayed grasp from the simulator</td><td>simulated depth</td><td class="n">21.5</td><td class="n">.298</td></tr>
+    <tr><td>Code-completed grasp from the simulator</td><td>simulated depth</td><td class="n">7.3</td><td class="n">1.12</td></tr>
+  </table></div>
+  <p class="cap">With real depth as control the task is close to reconstruction, so the first row is an upper bound, not a sim-to-real result. Simulated
+  depth is the case that matters: it works on the replayed grasp and fails on the code-completed one (cause not yet diagnosed). The full 1,500-step run has
+  finished training; its evaluation against the untrained base model is running.</p>
 </section>
 
 <section class="step reveal" id="futures">
@@ -460,16 +486,50 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
   </div>
 </section>
 
+<section class="step reveal" id="loop">
+  <header>
+    <h2><span class="no">6</span>Self-improvement on masked futures</h2>
+    <p class="lead">Every recorded episode is a free exam: cut it early, hide the rest, and ask the system to predict the touch that follows. A proposer
+    reads the visible frames and glove prefix and writes a phase program (which hand touches when, with which grip, and when the object is lifted, pressed
+    or set down); code turns the program into glove signals; a frozen evaluator scores them against the hidden future. An improver may then change the
+    program-to-touch code using training episodes only.</p>
+  </header>
+  <div class="tw"><table>
+    <tr><th>Held-out test · score Q ↑</th><th>2 frames seen</th><th>grasp just started</th><th>mid-contact</th><th>all</th></tr>
+    <tr><td>Persistence (repeat the prefix)</td><td class="n">.000</td><td class="n">.266</td><td class="n">.318</td><td class="n">.195</td></tr>
+    <tr><td>Shuffled (another episode's future)</td><td class="n">.158</td><td class="n">.264</td><td class="n">.308</td><td class="n">.243</td></tr>
+    <tr><td>Prior (training-set average future)</td><td class="n">.276</td><td class="n">.351</td><td class="n">.415</td><td class="n">.347</td></tr>
+    <tr><td>Phase program, round 0</td><td class="n">.360</td><td class="n">.408</td><td class="n">.457</td><td class="n">.408</td></tr>
+    <tr class="ours"><td>Phase program, round 1 (after one improver step)</td><td class="n">.365</td><td class="n">.428</td><td class="n">.502</td><td class="n">.431</td></tr>
+  </table></div>
+  <p class="cap">27 tasks from 9 episodes never used for fitting; 62 episodes and 186 tasks in total. Q averages five terms: contact overlap, onset time,
+  release time, force shape and which finger pads are loaded (1.0 = the real future). Round 1 beats the prior by .084 (bootstrap 95 % interval .036–.138)
+  and round 0 by .023 (.013–.033, better on 24 of 27 tasks). The improver step blended each grip's pad template with the pads loaded in the visible prefix.
+  Force shape is still the weakest term (.14): a program holds a flat grip level. One proposer sample per task.</p>
+</section>
+
 <section class="step reveal" id="status">
-  <header><h2><span class="no">6</span>What does not work yet</h2></header>
+  <header><h2><span class="no">7</span>What does not work yet</h2></header>
   <ul class="status prose">
     <li><b>One episode end to end.</b> A glass beaker gripped from above was not lifted in 20 Isaac runs: WiLoR's centimetre error gives the grasp type, not
     contact points on a 4.3 cm rim. A laptop lifted from below was placed correctly (height RMSE 0.4 cm) but the thumbs never touched.</li>
     <li><b>Relative touch.</b> The glove has no force calibration, so force level is compared in relative terms; mass and friction that best match touch are
     inferred, not measured.</li>
     <li><b>Completion ≠ the human.</b> Code completion is physically valid but slower and more staged than the person (3.0 s vs 0.98 s pick-up).</li>
-    <li><b>Rendering.</b> Long generated videos drift in background and appearance; RoboRender sees human hands it was not trained on.</li>
+    <li><b>Rendering.</b> Long generated videos drift in background and appearance; anchoring helps but leaves seams. TouchRender is good with real depth
+    and unproven with simulated depth, which is what the pipeline feeds it.</li>
+    <li><b>Masked futures.</b> The self-improvement loop predicts touch timing and pads, not yet force shape, and has no physics simulator in the loop.</li>
   </ul>
+  <h3 class="sub">Next experiments</h3>
+  <ol class="status prose">
+    <li><b>TouchRender, full run.</b> Compare the base model and the 500 / 1,000 / 1,500-step checkpoints on the held-out episodes and on simulated depth.</li>
+    <li><b>Close the depth gap.</b> Retrain with controls degraded to look like simulator depth, then render full-length grasps with anchoring and
+    cross-faded seams.</li>
+    <li><b>Loop, round 2.</b> Give programs a force shape (ramps and event peaks fitted on training episodes), write lessons from training failures into
+    the proposer, and pick among several sampled programs with a verifier.</li>
+    <li><b>One or two frames to video and touch.</b> Run a held-out episode end to end: frames → program → simulation → TouchRender video with the
+    880-taxel touch signal, under different prompts.</li>
+  </ol>
   <figure>
     <div class="paper"><img src="static/images/grasp_diag_e11a.png" alt="Grasp diagnostic of the failed beaker grasp" loading="lazy"></div>
     <figcaption><b>A failure, diagnosed.</b> Fingertip paths in the cup frame, distance to the wall, finger forces and joint angles for the beaker grasp.</figcaption>
