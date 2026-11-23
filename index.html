@@ -457,26 +457,30 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
   real episodes: the sensor depth video and the first real frame go in, the real video is the target. Nine episodes are held out.</p>
   <figure>
     <video src="static/videos/touchrender_heldout.mp4" muted loop playsinline controls preload="metadata" style="aspect-ratio:1344/768"></video>
-    <figcaption><b>Held-out episodes, early checkpoint (250 steps).</b> Depth control, the generated video, and the real video the model never saw.
-    These clips barely move; see the table below for how little this adds over the untrained base.</figcaption>
+    <figcaption><b>Held-out episodes, 250 training steps.</b> Depth control, the generated video, and the real video the model never saw.</figcaption>
   </figure>
   <div class="tw"><table>
-    <tr><th>Clip · control</th><th>Model</th><th>PSNR ↑</th><th>LPIPS ↓</th></tr>
-    <tr><td rowspan="3">9 held-out episodes, 1.4 s · real sensor depth</td><td>static first frame</td><td class="n">26.8</td><td class="n">.098</td></tr>
-    <tr><td>base Wan-Fun, no training</td><td class="n">26.2</td><td class="n">.078</td></tr>
-    <tr class="ours"><td>TouchRender, 250 steps</td><td class="n">27.6</td><td class="n">.077</td></tr>
-    <tr><td rowspan="2">Replayed grasp, 1.4 s · simulated depth</td><td>static first frame</td><td class="n">16.6</td><td class="n">.458</td></tr>
-    <tr class="ours"><td>TouchRender, 250 steps</td><td class="n">21.5</td><td class="n">.298</td></tr>
-    <tr><td rowspan="2">Code-completed grasp · simulated depth</td><td>static first frame</td><td class="n">64.5</td><td class="n">.407</td></tr>
-    <tr><td>TouchRender, 250 steps</td><td class="n">7.3</td><td class="n">1.11</td></tr>
+    <tr><th>Clip · control</th><th>Model</th><th>PSNR ↑</th><th>LPIPS ↓</th><th>DINO ↑</th></tr>
+    <tr><td rowspan="6">9 held-out episodes, 1.4 s · real sensor depth</td><td>static first frame</td><td class="n">26.8</td><td class="n">.098</td><td class="n">.950</td></tr>
+    <tr><td>base Wan-Fun, no training</td><td class="n">26.2</td><td class="n">.078</td><td class="n">.945</td></tr>
+    <tr class="ours"><td>TouchRender, 250 steps</td><td class="n">29.0</td><td class="n">.058</td><td class="n">.954</td></tr>
+    <tr><td>TouchRender, 500 steps</td><td class="n">28.8</td><td class="n">.065</td><td class="n">.950</td></tr>
+    <tr><td>TouchRender, 1,000 steps</td><td class="n">26.8</td><td class="n">.088</td><td class="n">.930</td></tr>
+    <tr><td>TouchRender, 1,500 steps</td><td class="n">24.7</td><td class="n">.151</td><td class="n">.750</td></tr>
+    <tr><td rowspan="4">Replayed grasp, 1.4 s · simulated depth (1 clip)</td><td>static first frame</td><td class="n">16.6</td><td class="n">.458</td><td class="n">.855</td></tr>
+    <tr><td>base Wan-Fun, no training</td><td class="n">15.8</td><td class="n">.515</td><td class="n">.802</td></tr>
+    <tr><td>TouchRender, 250 steps</td><td class="n">19.3</td><td class="n">.332</td><td class="n">.645</td></tr>
+    <tr><td>TouchRender, 1,500 steps</td><td class="n">20.0</td><td class="n">.291</td><td class="n">.694</td></tr>
   </table></div>
-  <p class="cap">The held-out clips barely move, so a static first frame already scores 26.8 and the 250-step model adds little over the untrained base on real
-  depth (PSNR +1.4, LPIPS equal): that row is a sanity check, not a result. Simulated depth is the case that matters. It beats the static frame on the
-  replayed grasp and destroys the code-completed clip, where nothing moves and the static frame is almost exact (cause not yet diagnosed).</p>
-  <div class="note"><b>Longer training made it worse.</b> The full run (1,500 steps) was scored on the held-out clips with intact base weights:
-  PSNR 22.2 at 500 steps, 17.1 at 1,000 and 16.4 at 1,500, against 26.2 for the untrained base; the generated frames dissolve into colour blobs. The
-  training copy of the base model had two corrupted weights (the server has faulty memory), so the likeliest cause is that the LoRA learned to compensate
-  for them; we are testing this by re-evaluating with the corrupted base reconstructed, and will retrain on verified weights.</div>
+  <p class="cap">One training run, checkpoints scored on the same clips with checksum-verified base weights. On real depth, 250 steps beats the untrained
+  base by 2.9 dB and the static first frame by 2.2 dB; more steps make it worse, and by 1,500 steps the output drifts from the first frame's appearance.
+  The held-out clips barely move, so these numbers mostly measure appearance, not motion. On the one simulated-depth clip every checkpoint beats both
+  baselines on PSNR and LPIPS but loses DINO similarity to the static frame; one clip is not enough to rank checkpoints there.</p>
+  <div class="note"><b>Correction.</b> An earlier version of this page reported that the full run collapsed into colour blobs (PSNR 16.4 at 1,500 steps)
+  and blamed corrupted base weights. Both were wrong: our evaluation script applied the LoRA at twice its training strength (the exported checkpoint
+  carries no alpha value, and the loader then defaults to 1.0 where training used 0.5). The table above is the re-evaluation at the correct strength;
+  rebuilding the corrupted base in memory changed nothing. Earlier 250-step numbers (27.6 on real depth, 21.5 on the replayed grasp, 7.3 on a
+  code-completed clip) came from the same faulty evaluation and are withdrawn; the code-completed clip has not been re-scored.</div>
 </section>
 
 <section class="step reveal" id="futures">
@@ -509,12 +513,15 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
     <tr><td>Shuffled (another episode's future)</td><td class="n">.158</td><td class="n">.264</td><td class="n">.308</td><td class="n">.243</td></tr>
     <tr><td>Prior (training-set average future)</td><td class="n">.276</td><td class="n">.351</td><td class="n">.415</td><td class="n">.347</td></tr>
     <tr><td>Phase program, round 0</td><td class="n">.360</td><td class="n">.408</td><td class="n">.457</td><td class="n">.408</td></tr>
-    <tr class="ours"><td>Phase program, round 1 (after one improver step)</td><td class="n">.365</td><td class="n">.428</td><td class="n">.502</td><td class="n">.431</td></tr>
+    <tr><td>Phase program, round 1 (pads)</td><td class="n">.365</td><td class="n">.428</td><td class="n">.502</td><td class="n">.431</td></tr>
+    <tr class="ours"><td>Phase program, round 2 (force shape, onset)</td><td class="n">.417</td><td class="n">.438</td><td class="n">.517</td><td class="n">.457</td></tr>
   </table></div>
   <p class="cap">27 tasks from 9 episodes never used for fitting; 62 episodes and 186 tasks in total. Q averages five terms: contact overlap, onset time,
-  release time, force shape and which finger pads are loaded (1.0 = the real future). Round 1 beats the prior by .084 (bootstrap 95 % interval .036–.138)
-  and round 0 by .023 (.013–.033, better on 24 of 27 tasks). The improver step blended each grip's pad template with the pads loaded in the visible prefix.
-  Force shape is still the weakest term (.14): a program holds a flat grip level. One proposer sample per task.</p>
+  release time, force shape and which finger pads are loaded (1.0 = the real future). The programs are the same in all three rounds; only the code that
+  turns a program into touch changes, fitted on training episodes. Round 1 blends each grip's pad template with the pads loaded in the visible prefix.
+  Round 2 replaces the flat grip level with the average force shape of a training contact and pulls the two-frame onset toward the training median.
+  Round 2 beats the prior by .110 (bootstrap 95 % interval .060–.163), round 0 by .049 (.035–.064, better on 26 of 27 tasks) and round 1 by .026
+  (.011–.042). Release time (.27) and force shape (.22) remain the weakest terms. One proposer sample per task.</p>
 </section>
 
 <section class="step reveal" id="status">
@@ -525,18 +532,19 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
     <li><b>Relative touch.</b> The glove has no force calibration, so force level is compared in relative terms; mass and friction that best match touch are
     inferred, not measured.</li>
     <li><b>Completion ≠ the human.</b> Code completion is physically valid but slower and more staged than the person (3.0 s vs 0.98 s pick-up).</li>
-    <li><b>Rendering.</b> Long generated videos drift in background and appearance; anchoring helps but leaves seams. TouchRender is good with real depth
-    and unproven with simulated depth, which is what the pipeline feeds it.</li>
-    <li><b>Masked futures.</b> The self-improvement loop predicts touch timing and pads, not yet force shape, and has no physics simulator in the loop.</li>
+    <li><b>Rendering.</b> Long generated videos drift in background and appearance; anchoring helps but leaves seams. TouchRender improves on the base model on near-static held-out clips, is
+    untested on clips where the hands move, and has one simulated-depth clip, which is what the pipeline feeds it.</li>
+    <li><b>Masked futures.</b> The self-improvement loop predicts touch timing, pads and an average force shape, improves only the program-to-touch code so far (not the proposer), and has no physics simulator in the loop.</li>
   </ul>
   <h3 class="sub">Next experiments</h3>
   <ol class="status prose">
-    <li><b>TouchRender on verified weights.</b> Confirm the corrupted-base explanation, then retrain from checksum-verified base weights with a harder held-out
-    test (clips where the hands move) and static-frame and base-model baselines in every table.</li>
-    <li><b>Close the depth gap.</b> Retrain with controls degraded to look like simulator depth, then render full-length grasps with anchoring and
+    <li><b>A harder rendering test.</b> Held-out clips where the hands move, and tens of simulated-depth clips instead of one, with static-frame and
+    base-model baselines in every table; then choose the checkpoint (250 to 500 steps so far).</li>
+    <li><b>Close the depth gap.</b> Train with controls degraded to look like simulator depth, then render full-length grasps with anchoring and
     cross-faded seams.</li>
-    <li><b>Loop, round 2.</b> Give programs a force shape (ramps and event peaks fitted on training episodes), write lessons from training failures into
-    the proposer, and pick among several sampled programs with a verifier.</li>
+    <li><b>Loop, round 3.</b> A first attempt to improve the proposer by writing five lessons from training failures into its instructions scored
+    .440 against .457 for round 2 (not significant): release time improved, force shape got worse. Next: drop the lesson that splits long contacts,
+    and pick among several sampled programs with a verifier.</li>
     <li><b>One or two frames to video and touch.</b> Run a held-out episode end to end: frames → program → simulation → TouchRender video with the
     880-taxel touch signal, under different prompts.</li>
   </ol>
