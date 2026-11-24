@@ -215,6 +215,13 @@ code{font-family:var(--fm);font-size:.88em}
 .cols5 span:first-child{border-left:0}
 .cols5 small{font:600 10.5px/1 var(--fm);letter-spacing:.08em;text-transform:uppercase;color:#ee8a4c}
 .cols5 span:first-child small{color:#5fbf86}
+.cols3,.cols6{display:grid}.cols3{grid-template-columns:repeat(3,minmax(0,1fr))}.cols6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.cols3 span,.cols6 span{display:grid;gap:4px;align-content:start;padding:9px 10px 8px;border-left:1px solid #1c1f22;font:400 13px/1.25 var(--fb);color:#eceef0}
+.cols3 span:first-child,.cols6 span:first-child{border-left:0}
+.cols3 small,.cols6 small{font:600 10.5px/1 var(--fm);letter-spacing:.08em;text-transform:uppercase;color:#ee8a4c}
+.cols3 span:first-child small{color:#5fbf86}
+.cols6 i{font:600 10.5px/1 var(--fm);font-style:normal;letter-spacing:.06em;text-transform:uppercase;justify-self:start;padding:3px 6px;border-radius:4px;background:#23272b;color:#9aa3ab}
+.cols6 i.ok{background:rgba(63,160,104,.22);color:#7fd3a2}.cols6 i.no{background:rgba(214,84,72,.24);color:#f0958a}
 .rows3{display:flex;flex-wrap:wrap;gap:4px 18px;font:500 12px/1.45 var(--fm);color:var(--muted)}
 .rows3 b{color:var(--ink2);font-weight:600}
 .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
@@ -336,7 +343,7 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
         <li>Pad pattern vs real glove: <b>.94</b> cosine on the observed span (both cases).</li>
         <li>A clip cut 4 s into the grasp is completed to a full pick-and-place; sim follows the plan within <b>0.3 cm</b>.</li>
         <li>Five language prompts → five physically different futures, all executed as asked.</li>
-        <li>At scale (24 Nov 2026): <b>40</b> source videos converted, each with eight prompted futures; <b>286 of 320</b> futures pass their check.</li>
+        <li>At scale (24 Nov 2026): <b>46</b> source videos converted, each replayed to the end of the real motion and given ten prompted futures; <b>365 of 460</b> futures pass their check.</li>
       </ul>
     </div>
   </div>
@@ -502,7 +509,7 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
     <h2><span class="no">5</span>Promptable physical futures</h2>
     <p class="lead">The calibrated scene executes new instructions as physically different outcomes. Five prompts on the handle grasp were turned into
     validated programs and all executed as asked: lift 15.2 cm · slow lift 5.1 cm · lift to 24.3 cm and release · carry 21.1 cm and set down · shake between
-    15 and 18.5 cm. Section 6 runs prompts of this kind on 40 videos.</p>
+    15 and 18.5 cm. Section 6 runs prompts of this kind on 46 videos.</p>
   </header>
   <div class="g2">
     <figure><video src="static/videos/gripper_feedback_loop.mp4" muted loop playsinline controls preload="metadata"></video><figcaption><b>Simulator feedback.</b>
@@ -517,37 +524,45 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
   <header>
     <h2><span class="no">6</span>At scale: every video, its conversion and its futures</h2>
     <p class="lead">Sections 2 to 5 are built around one calibrated recording. Here the code world model runs as an unattended batch on a shared GPU server. Every source
-    video that gets through receives (a) its own <b>conversion</b>, a simulated replay of the motion measured in the real video, and (b) eight
-    <b>prompted futures</b> in the same scene: lift 8, 15 or 22 cm · lift and let go at 7.5 or 20 cm · shake 2 cm at 1 Hz or 4 cm at 2 Hz · do nothing.
-    Each comes with a rendered clip and a simulated touch video for both gloves. All numbers are from 24 Nov 2026; the batch is still running.</p>
+    video that gets through receives (a) its own <b>conversion</b>, a simulated replay of the motion measured in the real video, to the end of that motion, and (b) ten
+    <b>prompted futures</b> in the same scene: lift 8, 15 or 22 cm · lift and let go at 7.5 or 20 cm · shake 2 cm at 1 Hz or 4 cm at 2 Hz · do nothing ·
+    pick up 10 cm and put back · carry 10 cm sideways and put down. Each comes with a rendered clip and a simulated touch video for both gloves. All numbers
+    are from 24 Nov 2026; the batch is still running.</p>
   </header>
   <div class="stats">
     <div class="stat"><small>Episodes on the server</small><b>431</b><em>62 + 369 from ten more shards</em></div>
     <div class="stat"><small>Object identified</small><b>195</b><em>33 + 162, named by a person</em></div>
-    <div class="stat"><small>Source videos converted</small><b>40</b><em>15 + 25, through every gate</em></div>
-    <div class="stat"><small>Prompted futures</small><b>320</b><em>8 per video, all rendered</em></div>
-    <div class="stat"><small>Futures that do as asked</small><b>286 / 320</b><em>89 %, checked per prompt</em></div>
+    <div class="stat"><small>Source videos converted</small><b>46</b><em>15 + 31, through every gate</em></div>
+    <div class="stat"><small>Prompted futures</small><b>460</b><em>10 per video</em></div>
+    <div class="stat"><small>Futures that do as asked</small><b>365 / 460</b><em>79 %, checked per prompt</em></div>
   </div>
   <figure class="gal">
     <div class="thumbs" id="galt" role="group" aria-label="Source video"></div>
     <div class="galw"><div class="gali">
-      <div class="cols5" aria-hidden="true">
-        <span><small>conversion</small>replay of the real motion</span>
-        <span><small>prompt</small>lift 15 cm</span>
-        <span><small>prompt</small>lift 22 cm</span>
-        <span><small>prompt</small>lift 20 cm, then let go</span>
-        <span><small>prompt</small>shake 4 cm at 2 Hz</span>
+      <div class="cols3" aria-hidden="true">
+        <span><small>real</small>source video</span>
+        <span><small>conversion</small>simulated replay of the real motion</span>
+        <span><small>conversion</small>simulated touch, left | right glove</span>
       </div>
-      <video id="galv" src="static/videos/batch_66d41b40.mp4" poster="static/images/batch_66d41b40.jpg" muted loop playsinline controls preload="none" style="aspect-ratio:1280/434"
-        aria-label="Five columns: the replay of the real motion and four prompted futures. Three rows: real video, simulation, simulated touch."></video>
+      <video id="galv" src="static/videos/batch_66d41b40.mp4" poster="static/images/batch_66d41b40.jpg" muted loop playsinline controls preload="none" style="aspect-ratio:1280/482"
+        aria-label="Top: the real video, its simulated replay and the simulated touch. Bottom: six prompted futures, each with its simulated touch."></video>
+      <div class="cols6" id="galf" aria-hidden="true">
+        <span><small>prompt</small>lift 15 cm<i></i></span>
+        <span><small>prompt</small>lift 22 cm<i></i></span>
+        <span><small>prompt</small>lift 20 cm, then let go<i></i></span>
+        <span><small>prompt</small>shake 4 cm at 2 Hz<i></i></span>
+        <span><small>prompt</small>pick up 10 cm, put back<i></i></span>
+        <span><small>prompt</small>carry 10 cm, put down<i></i></span>
+      </div>
     </div></div>
-    <div class="rows3"><span><b>row 1</b> <span class="real">real</span> video; the four futures have no real counterpart, so they show its first frame, dimmed</span><span><b>row 2</b>
-    <span class="sim">simulation</span> along the real head-camera path</span><span><b>row 3</b> <span class="sim">simulated</span> touch, left | right glove</span></div>
-    <figcaption id="galc"><b>White plastic cup.</b> The replay peaks at 11.7 cm; the lift measured in the real video is 11.7 cm.</figcaption>
-    <p class="cap">Twelve of the 40 converted videos, one per object type, with five of each video's nine simulations; every future shown passed its check.
-    The clips cover the first 6.5 s: in all twelve the measured carry lasts longer, so the release at its end is not shown, and a 22 cm lift can leave the
-    camera frame. Objects are untextured library meshes on a plain table. Touch is in simulated Newtons and has not been compared with the real gloves on
-    these videos.</p>
+    <div class="rows3"><span><b>top</b> <span class="real">real</span> video · <span class="sim">simulation</span> along the real head-camera path · <span class="sim">simulated</span> touch</span><span><b>bottom</b>
+    six futures from the same start, each about 6.5 s and repeating: <span class="sim">simulation</span> above its <span class="sim">simulated</span> touch</span></div>
+    <figcaption id="galc"><b>White plastic cup.</b></figcaption>
+    <p class="cap">Twelve of the 46 converted videos, one per object type, with seven of each video's eleven simulations. The conversion is rendered to the
+    end of the measured motion (6.5 to 24 s); when the real hand lets go, the simulated object is left where it is, because what it was put down on is usually
+    not in the scene. Each future carries the verdict of the check of its own prompt, and failed futures are shown as they are. The simulated hand keeps the
+    orientation it had at first contact, so a real pour or turn is replayed as a carry (section 8). A 22 cm lift can leave the camera frame. Objects are
+    untextured library meshes on a plain table. Touch is in simulated Newtons and has not been compared with the real gloves on these videos.</p>
   </figure>
 
   <h3 class="sub">How a video gets through</h3>
@@ -561,12 +576,15 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
     frame holds it. An object whose base ends up above the table plane (it stood on a rack, a tray, a carton) gets a support under it.</li>
     <li><b>Propose and verify.</b> Three ways to start the grasp are built per video, plus a fallback: the fitted hand is moved clear of the object
     or its fingers are opened, and the object is free, held rigidly, or held in height only until the fingers have closed. Each is tried with two
-    simulations, the replay and a prompted 15 cm lift. The first that passes both gates is kept and its other futures are simulated.</li>
+    simulations, the replay and a prompted 15 cm lift. The first that passes both gates is kept and its other futures are simulated. The two put-down
+    futures are also run with two ways of letting go, and the run that passes its check is kept.</li>
     <li><b>Gates.</b> <i>Lift:</i> the object reaches at least 12 cm and stays above 10 cm with two or more fingers pressing. <i>Replay:</i> its peak
     is within max(1.5 cm, 30 %) of the lift measured in the real video, and the object stays in the hand for the whole measured carry (it moves at
-    most 8 cm relative to the hand). Six of the 40 have a real lift under 3 cm, where only the second condition is tested. <i>Futures:</i> each is
+    most 8 cm relative to the hand). Eight of the 46 have a real lift under 3 cm, where only the second condition is tested. <i>Futures:</i> each is
     scored against its own prompt: lift height within max(1 cm, 10 %); a drop must reach its release height, fall and end at its start level; a
-    shake must keep its amplitude within 30 % and its frequency within 10 % with the object still in the hand; under "do nothing" the object must move less than 5 mm.</li>
+    shake must keep its amplitude within 30 % and its frequency within 10 % with the object still in the hand; under "do nothing" the object must move less
+    than 5 mm; a put-down must reach 10 cm within 1 cm and end at its start height, upright within 20° and in place (put back: within 5 cm; carry: 10 cm
+    along the camera's right within 2 cm).</li>
   </ol>
 
   <h3 class="sub">Results so far</h3>
@@ -574,26 +592,31 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
     <div>
       <div class="tw"><table>
         <tr><th>New shards · object type</th><th style="text-align:right">Decided</th><th style="text-align:right">Converted</th></tr>
-        <tr><td>Graspable containers: cups, mugs, beakers, bottles, a flask</td><td class="n">34</td><td class="n">22</td></tr>
-        <tr><td>Thin tools: clamps, tweezers, test tubes, a pipette, a ladle</td><td class="n">7</td><td class="n">3</td></tr>
+        <tr><td>Graspable containers: cups, mugs, beakers, bottles, a flask</td><td class="n">41</td><td class="n">28</td></tr>
+        <tr><td>Thin tools: clamps, tweezers, test tubes, a pipette, a ladle</td><td class="n">9</td><td class="n">3</td></tr>
         <tr><td>Two-hand objects: a rack, a tray</td><td class="n">2</td><td class="n">0</td></tr>
-        <tr class="ours"><td>All decided</td><td class="n">43</td><td class="n">25 (58 %)</td></tr>
+        <tr class="ours"><td>All decided</td><td class="n">52</td><td class="n">31 (60 %)</td></tr>
       </table></div>
-      <p class="cap" style="margin-top:9px">Of the 18 not converted, 4 reproduce the real motion in the replay but cannot hold the prompted lift, and 14 fail both.
-      119 of the 162 newly identified episodes are not decided yet, and 31 of those carry low-confidence labels, so 58 % is a running figure. In the
+      <p class="cap" style="margin-top:9px">Of the 21 not converted, 4 reproduce the real motion in the replay but cannot hold the prompted lift, and 17 fail both.
+      110 of the 162 newly identified episodes are not decided yet, and 31 of those carry low-confidence labels, so 60 % is a running figure. In the
       first batch 15 of 33 identified episodes are converted.</p>
     </div>
     <div>
       <div class="tw"><table>
-        <tr><th>Prompt · 40 videos</th><th style="text-align:right">Runs</th><th style="text-align:right">Pass</th></tr>
-        <tr><td>Lift 8 / 15 / 22 cm</td><td class="n">120</td><td class="n">110</td></tr>
-        <tr><td>Lift, then let go at 7.5 / 20 cm</td><td class="n">80</td><td class="n">60</td></tr>
-        <tr><td>Shake 2 cm at 1 Hz / 4 cm at 2 Hz</td><td class="n">80</td><td class="n">76</td></tr>
-        <tr><td>Do nothing: the object must not move</td><td class="n">40</td><td class="n">40</td></tr>
-        <tr class="ours"><td>All futures</td><td class="n">320</td><td class="n">286 (89 %)</td></tr>
+        <tr><th>Prompt · 46 videos</th><th style="text-align:right">Runs</th><th style="text-align:right">Pass</th></tr>
+        <tr><td>Lift 8 / 15 / 22 cm</td><td class="n">138</td><td class="n">122</td></tr>
+        <tr><td>Lift, then let go at 7.5 / 20 cm</td><td class="n">92</td><td class="n">69</td></tr>
+        <tr><td>Shake 2 cm at 1 Hz / 4 cm at 2 Hz</td><td class="n">92</td><td class="n">84</td></tr>
+        <tr><td>Do nothing: the object must not move</td><td class="n">46</td><td class="n">46</td></tr>
+        <tr><td>Pick up 10 cm, put back</td><td class="n">46</td><td class="n">21</td></tr>
+        <tr><td>Carry 10 cm sideways, put down</td><td class="n">46</td><td class="n">23</td></tr>
+        <tr class="ours"><td>All futures</td><td class="n">460</td><td class="n">365 (79 %)</td></tr>
       </table></div>
-      <p class="cap" style="margin-top:9px">Letting go is the weak prompt: 11 of its 20 failures are wash bottles, which stay hooked on the open fingers or are
-      thrown.</p>
+      <p class="cap" style="margin-top:9px">Letting go and putting down are the weak prompts. Two ways of letting go are run (for put-downs on every video, for drops
+      on the wash bottles so far) and the run that passes its check is kept. With the first release alone (stop a few millimetres above the support, open fast, back away towards the wrist) 32 of 84 put-downs passed on
+      the 42 videos that have both versions; lowering until the object rests, opening slowly and backing away along the palm normal gives 38, and
+      keeping the passing run 42. Wash bottles (9 of the 46 videos) fail most: in the one traced in detail the spout lies between the fingers, because
+      the hand fit cannot tell which way the spout points, and the bottle stays clamped in the open hand.</p>
     </div>
   </div>
   <div class="note"><b>What the batch leaves out.</b> No agent calibrates these scenes against the gloves (section 2): grip force and friction are fixed and
@@ -634,17 +657,21 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
     was placed correctly (height RMSE 0.4 cm) but the thumbs never touched. The batch of section 6 skips this stage: grip force and friction are fixed, the
     gloves give the timing only, and its simulated touch has not been compared with the real gloves.</li>
     <li><b>Position without rotation.</b> The batch replay moves the simulated hand along the measured positions; the wrist cannot rotate, so pouring or
-    turning a cup over is not reproduced. In 20 converted videos the tracked hand rotates by 26° to 180° during the carry, in 13 of them by more than 60°
-    (peak values from a tracker that has outlier frames).</li>
-    <li><b>Letting go.</b> Drops pass 60 of 80 times; 11 of the 20 failures are wash bottles, which stay hooked on the open fingers or are thrown. After a
-    put-down the retreating hand knocks over mugs with a handle: two put-down futures (put back; carry 10 cm and put down) are in testing, pass for about
-    half of the objects tried, and are not shown.</li>
-    <li><b>Yield.</b> 18 of the 43 decided new episodes are not converted (42 %): thin tools pass 3 of 7, two-hand objects 0 of 2, and 119 identified
+    turning a cup over is not reproduced. The tracked wrist orientation is usable on 39 of the 43 one-hand converted videos, and the hand turns by more than 60° in
+    16 of them. A first replay that also turns the wrist follows the tracked orientation exactly, but the simulated grasp does not survive it: thumb and
+    fingertips hold the object at a few point contacts, and it is squeezed out once the hand has turned a few degrees (0 of 4 test videos keep the object;
+    1 of 4 with torsional friction on the finger contacts).</li>
+    <li><b>Letting go.</b> Drops pass 69 of 92 times and put-downs 44 of 92. Wash bottles are the largest group: the object is posed from the hand, which
+    does not fix which way a bottle's spout points; in the video traced in detail the spout lies between the fingers, the bottle stays clamped in the open hand
+    (two contacts above 120 N) and goes wherever the hand goes. Three changes to the release (a retreat along the palm normal, a retreat direction chosen by geometry, fingers that
+    stop opening when they meet resistance) did not free it; the fix belongs in how the scene is built. Mugs lying on their side roll once released.</li>
+    <li><b>Yield.</b> 21 of the 52 decided new episodes are not converted (40 %): thin tools pass 3 of 9, two-hand objects 0 of 2, and 110 identified
     episodes are still undecided. Two episodes have a grasp too short to measure a carry, so they have no conversion.</li>
     <li><b>A person names the object.</b> Object identity and the library mesh are chosen by hand from the contact frame (195 episodes so far).</li>
-    <li><b>Batch renders.</b> Untextured models on a plain table, the first 6.5 s only, along the real camera, so a 22 cm lift can leave the frame. In the
-    replay clips made so far, an object that started above the table plane falls and topples once the hand lets go; the simulator now leaves it where the
-    real hand left it (checked on three episodes) and the replays are being re-run. TouchRender has not been run on the batch.</li>
+    <li><b>Batch renders.</b> Untextured models on a plain table, along the real camera, so a 22 cm lift can leave the frame. The conversion is rendered to the
+    end of the measured motion and the futures for 6.5 s. Once the real hand lets go, the simulated object is frozen where it is instead of falling to the
+    table plane. In 18 of the 46 conversions the object has turned more than 20° in the simulated grip by then, which the real videos do not show.
+    TouchRender has not been run on the batch.</li>
     <li><b>No downstream test.</b> The conversions and futures have not yet been used to train or evaluate a World Action Model.</li>
     <li><b>Relative touch.</b> The glove has no force calibration, so force level is compared in relative terms; mass and friction that best match touch are
     inferred, not measured.</li>
@@ -655,9 +682,11 @@ footer img{width:22px;height:22px;border-radius:5px;flex:none}
   </ul>
   <h3 class="sub">Next experiments</h3>
   <ol class="status prose">
-    <li><b>Replay with wrist rotation.</b> Drive the simulated wrist with the tracked orientation as well as the position (six degrees of freedom), as a
-    separate replay compared with the present one on the converted videos.</li>
-    <li><b>More videos.</b> Finish the 119 undecided episodes, bring in further TouchScale shards (431 of the release's 15,324 episodes are on the server)
+    <li><b>A grasp that survives rotation.</b> Contact patches instead of point contacts on the fingers (or more contacts along the palm), then the replay with
+    the tracked wrist orientation on all converted videos, compared with the present one.</li>
+    <li><b>Object pose for release.</b> Choose the direction of a spout, a handle or another protruding part so that it clears the fingers, then the drops and
+    put-downs again.</li>
+    <li><b>More videos.</b> Finish the 110 undecided episodes, bring in further TouchScale shards (431 of the release's 15,324 episodes are on the server)
     and report the pass rate over everything identified.</li>
     <li><b>Automatic identification.</b> Replace the person who names the object with a vision-language model, scored against the 195 manual labels.</li>
     <li><b>Downstream test.</b> Train or evaluate a World Action Model with the conversions and futures, against the real videos alone.</li>
@@ -744,8 +773,8 @@ var S={
  prompt:{eb:"Stage 06",t:"Prompt new physical futures",
    p:"A language instruction becomes a validated program in the calibrated scene: lift 15.2 cm, slow lift 5.1 cm, lift and release, carry and set down, shake. Simulator feedback fixes programs that fail.",
    i:["calibrated scene","language prompt"],o:["new future: path, forces, touch, video"],
-   kv:[["5 / 5","prompts executed"],["24 → 48 / 48","with sim feedback"],["286 / 320","batch futures pass, 40 videos"]],code:["pf_program.py","isaac_pf_mano.py"],
-   m:{A:[["video",V+"gripper_feedback_loop.mp4","feedback loop"],["video",V+"gripper_programs.mp4","program templates"],["video",V+"batch_66d41b40.mp4","batch: conversion + 4 futures"]]}}
+   kv:[["5 / 5","prompts executed"],["24 → 48 / 48","with sim feedback"],["365 / 460","batch futures pass, 46 videos"]],code:["pf_program.py","isaac_pf_mano.py"],
+   m:{A:[["video",V+"gripper_feedback_loop.mp4","feedback loop"],["video",V+"gripper_programs.mp4","program templates"],["video",V+"batch_66d41b40.mp4","batch: conversion + 6 futures"]]}}
 };
 var PATH={A:["in","judge","rebuild","cal","replay","render","out","prompt"],B:["in","judge","rebuild","cal","complete","render","out","prompt"]};
 var EDGES=[["in","judge"],["judge","rebuild"],["rebuild","cal"],["cal","replay"],["cal","complete"],["replay","render"],["complete","render"],["render","out"]];
@@ -822,25 +851,26 @@ var rt; addEventListener("resize",function(){clearTimeout(rt); rt=setTimeout(dra
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(drawEdges);
 drawEdges(); show("in",false);
 // ---- batch gallery (section 6): one player, the clip is fetched when it is picked or scrolls into view ---------------------
-// id, object, replay peak (cm), lift measured in the real video (cm), note
-var G=[["66d41b40","white plastic cup",11.7,11.7,""],
- ["fcda2dd1","yellow plastic cup",11.6,11.5,"In the real video the person turns the cup over; the replay keeps the hand's orientation (section 8)."],
- ["77b3b3c9","travel mug",3.6,3.7,"The measured motion is mostly sideways: about 38 cm of travel for a 3.7 cm lift."],
- ["aca67d95","beaker",18.9,19.3,""],
- ["70aad632","medium beaker",7.6,7.6,""],
- ["99c6b991","amber reagent bottle",14.1,14.0,"The bottle shifts about 4 cm in the simulated grip during the carry."],
- ["92d5e432","wash bottle",7.2,7.4,"One of the wash bottles whose drop works; most do not (section 8)."],
- ["21cf68a5","spring clamp",6.1,6.3,"The clamp starts 18 cm above the table, so the lifts leave the camera frame."],
- ["319be959","test tube clamp",11.7,11.9,""],
- ["c0e6d967","tweezers",18.0,17.4,""],
- ["67b1411a","tape measure",8.1,7.8,"The 22 cm lift reaches the top edge of the frame."],
- ["3df2a53c","food tongs",9.2,9.4,""]];
-var gv=document.getElementById("galv"), gt=document.getElementById("galt"), gc=document.getElementById("galc");
+// id, object, replay peak (cm), lift measured in the real video (cm), clip length (s), verdicts of the six futures shown (1 pass, 0 fail, - not scored), note
+var G=[["66d41b40", "white plastic cup", 11.7, 11.7, 14.3, "111111", "The tracked wrist turns by about 90° during this carry; the simulated hand keeps its orientation (section 8)."],
+ ["fcda2dd1", "yellow plastic cup", 11.6, 11.5, 9.1, "111111", "In the real video the person turns the cup over; the replay keeps the hand's orientation (section 8)."],
+ ["77b3b3c9", "travel mug", 3.6, 3.7, 9.2, "111101", "The measured motion is mostly sideways: about 38 cm of travel for a 3.7 cm lift. The mug starts lying on its side and rolls away when it is put back."],
+ ["aca67d95", "beaker", 19.0, 19.3, 12.3, "111111", ""],
+ ["70aad632", "medium beaker", 7.6, 7.6, 11.2, "111111", ""],
+ ["99c6b991", "amber reagent bottle", 14.1, 14.0, 8.6, "111100", "The bottle shifts about 4 cm in the simulated grip during the carry and has turned 57° by its end."],
+ ["92d5e432", "wash bottle", 7.2, 7.4, 9.8, "111100", "One of the wash bottles whose drop works. In both put-downs the bottle stays caught in the open hand (section 8)."],
+ ["21cf68a5", "spring clamp", 6.3, 6.3, 9.4, "111100", "In the put-back the clamp is dragged about 11 cm when the hand backs away."],
+ ["319be959", "test tube clamp", 11.7, 11.9, 11.0, "111111", ""],
+ ["c0e6d967", "tweezers", 18.0, 17.4, 9.3, "111111", ""],
+ ["67b1411a", "tape measure", 8.1, 7.8, 18.2, "111111", "The 22 cm lift reaches the top edge of the frame."],
+ ["3df2a53c", "food tongs", 9.2, 9.4, 14.1, "111100", "Put back, the tongs settle 1.4 cm lower than they started, which fails the check."]];
+var gv=document.getElementById("galv"), gt=document.getElementById("galt"), gc=document.getElementById("galc"), gf=document.getElementById("galf");
 function gal(k,play){var g=G[k]; if(play||k){gv.poster=I+"batch_"+g[0]+".jpg"; gv.src=V+"batch_"+g[0]+".mp4";}
-  gc.innerHTML="<b>"+esc(g[1].charAt(0).toUpperCase()+g[1].slice(1))+".</b> The replay peaks at "+g[2].toFixed(1)+" cm; the lift measured in the real video is "+g[3].toFixed(1)+" cm."+(g[4]?" "+esc(g[4]):"");
+  var ok=0, n=0; [].forEach.call(gf.querySelectorAll("i"),function(e,j){var c=g[5].charAt(j); e.className=c==="1"?"ok":(c==="0"?"no":""); e.textContent=c==="1"?"pass":(c==="0"?"fail":"not scored"); if(c!=="-"){n++; if(c==="1") ok++;}});
+  gc.innerHTML="<b>"+esc(g[1].charAt(0).toUpperCase()+g[1].slice(1))+".</b> The conversion runs "+g[4].toFixed(1)+" s and peaks at "+g[2].toFixed(1)+" cm; the lift measured in the real video is "+g[3].toFixed(1)+" cm. "+ok+" of the "+n+" futures shown pass their check."+(g[6]?" "+esc(g[6]):"");
   [].forEach.call(gt.children,function(b,j){b.setAttribute("aria-pressed",j===k?"true":"false");});
   if(play){var pr=gv.play(); if(pr&&pr.catch) pr.catch(function(){});}}
-if(gv&&gt&&gc){G.forEach(function(g,k){var b=document.createElement("button"); b.type="button"; b.textContent=g[1]; b.addEventListener("click",function(){gal(k,true);}); gt.appendChild(b);}); gal(0,false);}
+if(gv&&gt&&gc&&gf){G.forEach(function(g,k){var b=document.createElement("button"); b.type="button"; b.textContent=g[1]; b.addEventListener("click",function(){gal(k,true);}); gt.appendChild(b);}); gal(0,false);}
 // ---- hero taxel grid -----------------------------------------------------------------------------------------------
 var tx=document.getElementById("tx"), h="";
 for(var r=0;r<7;r++) for(var c=0;c<11;c++){ if((r<2&&(c<2||c>8))) continue; var d=(((r*7+c*3)%11)/11*3.2).toFixed(2), col=(c+r)%3===0?"var(--sim)":((c+r)%3===1?"var(--real)":"var(--gen)");
